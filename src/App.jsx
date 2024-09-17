@@ -1,17 +1,23 @@
 import { useState } from 'react'
+import useSound from 'use-sound';
 
+import winAudio from './assets/winaudio.mp3'
 
+let winningCells;
 
-function Square( {value, onSquareClick} ) {
-  return <button className="square" onClick={onSquareClick}>{value}</button>
+function Square( {value, onSquareClick, styleClass} ) {
+  return <button className={styleClass} onClick={onSquareClick}>{value}</button>
 }
 
 function Board({squares, turno, onPlay, currentMove}) {
   const numbers = [1,2,3,4,5,6,7,8,9];
+  const [playSound] = useSound(winAudio);
+
   let matchStatus;
 
   if (calculateWinner(squares)){
     matchStatus = "Ganador: " + calculateWinner(squares);
+    playSound();
   } else {
     matchStatus = "Siguiente Jugador: " + (turno ? "O" : "X");
   }
@@ -40,8 +46,13 @@ function Board({squares, turno, onPlay, currentMove}) {
   }
 
   const buttonSquares = numbers.map((x) => {
+    let styleButton = "square";
+    if (winningCells) {
+      styleButton = winningCells.includes(x-1) ? "winning-square" : "square";
+    } 
+    
     return <li key={x}>
-      <Square value={squares[x-1]} onSquareClick={() => handleClick(turno, x-1)}/>
+      <Square value={squares[x-1]} onSquareClick={() => handleClick(turno, x-1)} styleClass={ styleButton }/>
     </li>    
   })
 
@@ -67,6 +78,7 @@ function Board({squares, turno, onPlay, currentMove}) {
 export default function Game(){
   const [history, setHistory] = useState([Array(9).fill(null)]);
   const [currentMove, setCurrentMove] = useState(0);
+  const [reversedButtons, setReversedButtons] = useState(false);
   const turno = currentMove % 2 === 1;
 
   const currentSquares = history[currentMove];
@@ -79,18 +91,28 @@ export default function Game(){
 
   function jumpTo(expectedSquares){
     setCurrentMove(expectedSquares);
+    winningCells = null;
+  }
+
+  function reverseHistory(){
+    setReversedButtons(!reversedButtons);
   }
 
   const moves = history.map((squares, move) =>{
+    const newMove = reversedButtons ? (((move-history.length)+1)*(-1)) : move;
     let description;
-    if (move > 0) {
-      description = "Ir al movimiento #" + move;
+    if (newMove===currentMove){
+      description = "Estás en el movimiento #" + newMove;
+    } else if (newMove > 0) {
+      description = "Ir al movimiento #" + newMove;
     } else {
       description = "Ir al inicio del juego";
     }
-    return <li key={move}>
-      <button onClick={()=>jumpTo(move)}> {description} </button>
-    </li>
+    return newMove===currentMove ? (<li>
+      <p> {description} </p>
+    </li>) :  (<li key={newMove}>
+      <button onClick={()=>jumpTo(newMove)}> {description} </button>
+    </li>)
   }
 )
 
@@ -99,9 +121,10 @@ export default function Game(){
       <Board squares={currentSquares} turno={turno} onPlay={handlePlay} currentMove={currentMove}/>
     </div>
     <div className='game-info'>
-      <ol>
+      <ul>
         {moves}
-      </ol>
+      </ul>
+      <button onClick={reverseHistory}>Voltear</button>
     </div>
   </div>
 }
@@ -120,8 +143,10 @@ function calculateWinner(squares) {
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
     if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+      winningCells = [a,b,c];
       return squares[a];
     }
   }
   return null;
 }
+

@@ -6,6 +6,7 @@ body {
 }
 
 .square {
+  cursor: pointer;
   width: 50px;
   height: 50px;
   background-color: #444;
@@ -19,6 +20,22 @@ body {
 .square:hover{
   background-color: #222;
   color: #09f;
+}
+
+.winning-square {
+  cursor: pointer;
+  width: 50px;
+  height: 50px;
+  background-color: #0b430cd6;
+  color: #ddd;
+  border: 3px solid #0b430c;
+  border-radius: 4px;
+  margin: auto;
+}
+
+.winning-square:hover {
+  background-color: #0b430c68;
+  border: 3px solid #0b430c68;
 }
 
 .tablero {
@@ -55,6 +72,7 @@ li {
   margin-top: 15px;
 }
 li button{
+  cursor: pointer;
   border-radius:7px;
   border: 0px solid #09f;
   background-color: rgba(28, 52, 92, 1);
